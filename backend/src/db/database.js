@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { readFileSync, mkdirSync } from 'fs';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import logger from '../utils/logger.js';
 
@@ -16,6 +16,18 @@ class Database {
     // Initialize database connection and schema
     async initialize() {
         return new Promise((resolve, reject) => {
+            // Create data directory if it doesn't exist
+            const dbDir = dirname(this.dbPath);
+            try {
+                mkdirSync(dbDir, { recursive: true });
+                logger.info(`Database path: ${this.dbPath}`);
+                logger.info(`Ensured database directory exists: ${dbDir}`);
+            } catch (err) {
+                logger.error(`Failed to create database directory: ${err.message}`);
+                reject(err);
+                return;
+            }
+
             this.db = new sqlite3.Database(this.dbPath, (err) => {
                 if (err) {
                     logger.error('Database connection error:', err);

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, resolve } from 'path';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import Database from './db/database.js';
@@ -30,7 +30,7 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
-const DB_PATH = process.env.DB_PATH || './data/localshare.db';
+const DB_PATH = resolve(process.env.DB_PATH || './data/localshare.db');
 
 // Database instance
 let db = null;
