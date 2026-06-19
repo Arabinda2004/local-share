@@ -1,0 +1,13 @@
+# Generated file - do not modify
+packages:
+  flutter:
+    sdk: flutter
+  flutter_svg:
+  qr_flutter:
+  qr_code_scanner:
+  socket_io_client_alt:
+  sqflite:
+  permission_handler:
+  path_provider:
+  intl:
+  flutter_lints:
