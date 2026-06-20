@@ -1,4 +1,5 @@
 import express from 'express';
+import os from 'os';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -20,13 +21,14 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-    cors: {
-        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-        methods: ['GET', 'POST'],
-        credentials: true
-    }
-});
+
+// For local network file sharing, accept connections from any origin
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const corsConfig = corsOrigin === '*'
+    ? { origin: true, methods: ['GET', 'POST'], credentials: true }
+    : { origin: corsOrigin, methods: ['GET', 'POST'], credentials: true };
+
+const io = new Server(httpServer, { cors: corsConfig });
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
@@ -36,10 +38,10 @@ const DB_PATH = resolve(process.env.DB_PATH || './data/localshare.db');
 let db = null;
 
 // Middleware
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    credentials: true
-}));
+app.use(cors(corsOrigin === '*'
+    ? { origin: true, credentials: true }
+    : { origin: corsOrigin, credentials: true }
+));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -96,6 +98,16 @@ async function initialize() {
             logger.info(`Backend server running on http://${HOST}:${PORT}`);
             logger.info(`WebSocket ready on ws://${HOST}:${PORT}`);
             logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+            // Show LAN IP addresses for mobile device connection
+            const interfaces = os.networkInterfaces();
+            for (const [name, addrs] of Object.entries(interfaces)) {
+                for (const addr of addrs) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                        logger.info(`📱 Mobile connect URL: http://${addr.address}:${PORT}`);
+                    }
+                }
+            }
         });
     } catch (err) {
         logger.error('Failed to initialize server:', err);

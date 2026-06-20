@@ -53,47 +53,70 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
         final hasSelectedPeer = appProvider.selectedPeerId != null;
 
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: Colors.white,
             border: Border(
-              top: BorderSide(color: Colors.grey[300]!),
+              top: BorderSide(color: Colors.grey[200]!),
             ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  enabled: hasSelectedPeer && !_sending,
-                  decoration: InputDecoration(
-                    hintText: 'Type a message...',
-                    border: OutlineInputBorder(
+          child: SafeArea(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                    child: TextField(
+                      controller: _controller,
+                      enabled: hasSelectedPeer && !_sending,
+                      maxLines: 4,
+                      minLines: 1,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: const InputDecoration(
+                        hintText: 'Message...',
+                        hintStyle: TextStyle(color: Colors.black38),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
                     ),
                   ),
-                  maxLines: null,
                 ),
-              ),
-              const SizedBox(width: 8),
-              FloatingActionButton(
-                onPressed:
-                    hasSelectedPeer && !_sending ? _handleSend : null,
-                child: _sending
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Icon(Icons.send),
-              ),
-            ],
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: hasSelectedPeer && !_sending ? _handleSend : null,
+                    style: ElevatedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      padding: EdgeInsets.zero,
+                      backgroundColor: const Color(0xFF2563eb),
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[300],
+                      disabledForegroundColor: Colors.grey[500],
+                      elevation: 0,
+                    ),
+                    child: _sending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.send_rounded, size: 22),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -106,3 +129,4 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
     super.dispose();
   }
 }
+

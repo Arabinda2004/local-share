@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
-import { useAppStore } from "../stores/appStore";
-import socketService from "../services/socketService";
+import { useState } from "react";
 import ConnectionForm from "../components/ConnectionForm";
 import QRScanner from "../components/QRScanner";
-import ConnectionStatus from "../components/ConnectionStatus";
-import { parseQRData, extractConnectionDetails } from "../utils/qrParser";
+import socketService from "../services/socketService";
+import { useAppStore } from "../stores/appStore";
 
 export default function ConnectionPage({ onConnected }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { setConnectionStatus, setCurrentDevice } = useAppStore();
 
   const handleConnect = async (ip, port, deviceName) => {
@@ -19,10 +17,10 @@ export default function ConnectionPage({ onConnected }) {
     try {
       setConnectionStatus("connecting");
 
-      const url = `http://${ip}:${port}`;
+      // Connect to the backend socket
       await socketService.connect();
 
-      // Register device
+      // Register device and get the server-assigned device info
       const device = await socketService.registerDevice(deviceName, "web");
 
       setCurrentDevice(device);
@@ -37,47 +35,50 @@ export default function ConnectionPage({ onConnected }) {
     }
   };
 
-  const handleQRScan = (qrValue) => {
-    try {
-      const qrData = parseQRData(qrValue);
-      const { ip, port, deviceName } = extractConnectionDetails(qrData);
-      setShowQRScanner(false);
-      handleConnect(ip, port, deviceName);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-2 text-gray-800">LocalShare</h1>
-        <p className="text-gray-600 mb-8">Offline File Sharing</p>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">LocalShare</h1>
+            <p className="text-sm text-gray-500">Secure offline file sharing</p>
           </div>
-        )}
 
-        <ConnectionForm onConnect={handleConnect} loading={loading} />
+          {error && (
+            <div className="mb-6 flex items-start gap-3 p-4 text-sm text-red-800 bg-red-50 rounded-lg border border-red-100">
+              <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>{error}</p>
+            </div>
+          )}
 
-        <div className="mt-6 p-4 bg-gray-100 rounded-lg text-center">
-          <button
-            onClick={() => setShowQRScanner(true)}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            📱 Or scan QR code
-          </button>
-        </div>
-
-        {showQRScanner && (
-          <QRScanner
-            onScan={handleQRScan}
-            onClose={() => setShowQRScanner(false)}
+          <ConnectionForm
+            onConnect={handleConnect}
+            loading={loading}
           />
-        )}
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setShowQRScanner(true)}
+              className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+            >
+              Scan QR Code
+            </button>
+          </div>
+        </div>
       </div>
+
+      {showQRScanner && (
+        <QRScanner
+          onScan={(data) => {
+            console.log("Scanned:", data);
+            setShowQRScanner(false);
+            // Handle QR data integration here later
+          }}
+          onClose={() => setShowQRScanner(false)}
+        />
+      )}
     </div>
   );
 }

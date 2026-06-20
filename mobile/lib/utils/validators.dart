@@ -1,4 +1,4 @@
-export String validateIP(String ip) {
+String validateIP(String ip) {
   if (ip.isEmpty) return '';
   
   final ipPattern = RegExp(
@@ -8,7 +8,7 @@ export String validateIP(String ip) {
   return ipPattern.hasMatch(ip) ? '' : 'Invalid IP';
 }
 
-export String validatePort(String port) {
+String validatePort(String port) {
   try {
     final portNum = int.parse(port);
     if (portNum > 0 && portNum <= 65535) return '';
@@ -18,12 +18,12 @@ export String validatePort(String port) {
   return 'Port must be 1-65535';
 }
 
-export String validateMessage(String message) {
+String validateMessage(String message) {
   if (message.trim().isEmpty) return 'Message cannot be empty';
   if (message.length > 1000) return 'Message too long';
   return '';
 }
 
-export bool validateDeviceName(String name) {
+bool validateDeviceName(String name) {
   return name.trim().isNotEmpty && name.length <= 50;
 }

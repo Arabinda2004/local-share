@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext (HTTP) traffic to local network addresses -->
+    <!-- The mobile app connects to the backend server over plain HTTP on LAN -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Local network ranges -->
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">172.16.0.0</domain>
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+    <!-- Fallback: allow all cleartext for local-network file sharing use case -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

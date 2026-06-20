@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 class SocketService {
     constructor() {
@@ -63,12 +63,20 @@ class SocketService {
 
     onDeviceList(callback) {
         if (this.socket) {
+            this.socket.off('device:list');
             this.socket.on('device:list', callback);
+        }
+    }
+
+    requestDeviceList() {
+        if (this.socket) {
+            this.socket.emit('device:list:request');
         }
     }
 
     onMessageReceived(callback) {
         if (this.socket) {
+            this.socket.off('message:received');
             this.socket.on('message:received', callback);
         }
     }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/device.dart';
-import '../providers/app_provider.dart';
 
 class AppProvider extends ChangeNotifier {
   String? _currentDeviceId;
@@ -38,10 +36,11 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectPeer(String deviceId) {
+  void selectPeer(String? deviceId) {
     _selectedPeerId = deviceId;
     notifyListeners();
   }
+
 
   // Message handling
   void addMessage(String from, String to, String content) {

@@ -75,6 +75,7 @@ export function initializeWebSocketHandler(io, db) {
                 // Send message to recipient
                 io.to(`device:${to}`).emit('message:received', {
                     from,
+                    to,
                     fromName: deviceRegistry.getDevice(from)?.name || from,
                     content,
                     timestamp: new Date().toISOString()

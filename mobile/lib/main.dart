@@ -23,7 +23,18 @@ class LocalShareApp extends StatelessWidget {
     return MaterialApp(
       title: 'LocalShare',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2563eb), // Tailwind blue-600
+          surface: Colors.white,
+          background: Colors.white,
+        ),
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 0,
+          centerTitle: true,
+        ),
         useMaterial3: true,
       ),
       home: Consumer<AppProvider>(

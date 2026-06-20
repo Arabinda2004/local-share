@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/device.dart';
 import '../providers/app_provider.dart';
 import '../services/socket_service.dart';
 import '../widgets/device_list_widget.dart';
@@ -23,11 +24,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _setupSocketListeners() {
-    _socketService.onDeviceList((devices) {
+    _socketService.onDeviceList((data) {
       if (mounted) {
-        context.read<AppProvider>().updateDeviceList(devices);
+        final provider = context.read<AppProvider>();
+        final myId = provider.currentDeviceId;
+        final List rawList = data is List ? data : [];
+        final devices = rawList
+            .where((d) => d is Map && d['id'] != myId)
+            .map((d) => Device.fromJson(Map<String, dynamic>.from(d)))
+            .toList();
+        provider.updateDeviceList(devices);
       }
     });
+
+    _socketService.requestDeviceList();
 
     _socketService.onMessageReceived((msg) {
       if (mounted) {
@@ -49,74 +59,98 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LocalShare'),
-        elevation: 0,
-      ),
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 250,
-            color: Colors.grey[50],
-            child: Column(
+    return Consumer<AppProvider>(
+      builder: (context, appProvider, _) {
+        final hasSelectedPeer = appProvider.selectedPeerId != null;
+        
+        final selectedDeviceIndex = hasSelectedPeer ? appProvider.connectedDevices.indexWhere(
+          (d) => d.id == appProvider.selectedPeerId,
+        ) : -1;
+        
+        final selectedDevice = selectedDeviceIndex >= 0 
+            ? appProvider.connectedDevices[selectedDeviceIndex] 
+            : null;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 1,
+            shadowColor: Colors.black12,
+            leading: hasSelectedPeer
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => appProvider.selectPeer(null), // Go back to list
+                  )
+                : null,
+            title: Column(
+              crossAxisAlignment: hasSelectedPeer ? CrossAxisAlignment.start : CrossAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'LocalShare',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Connected',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green[600],
-                        ),
-                      ),
-                    ],
-                  ),
+                Text(
+                  hasSelectedPeer 
+                      ? (selectedDevice?.name ?? 'Chat')
+                      : 'LocalShare',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
-                Divider(height: 1),
-                Expanded(
-                  child: DeviceListWidget(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _handleDisconnect,
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Disconnect'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                      ),
+                if (!hasSelectedPeer)
+                  Text(
+                    'Connected',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green[600],
+                      fontWeight: FontWeight.normal,
                     ),
                   ),
-                ),
+                if (hasSelectedPeer && selectedDevice != null)
+                  Text(
+                    selectedDevice.type,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
               ],
             ),
-          ),
-          // Chat area
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: ChatBoxWidget(),
+            actions: [
+              if (!hasSelectedPeer)
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.red),
+                  onPressed: _handleDisconnect,
                 ),
-                MessageInputWidget(),
-              ],
-            ),
+            ],
           ),
-        ],
-      ),
+          body: hasSelectedPeer
+              ? Column(
+                  children: [
+                    Expanded(child: const ChatBoxWidget()),
+                    const MessageInputWidget(),
+                  ],
+                )
+              : Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                      ),
+                      child: Text(
+                        'DEVICES (${appProvider.connectedDevices.length})',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[600],
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: const DeviceListWidget()),
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -126,3 +160,4 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 }
+
